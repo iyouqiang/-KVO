@@ -43,4 +43,6 @@
 // 函数链式编程
 - (Person *)makecalculator:(void (^)(addCalculator *addcalculator))block;
 
+- (void)testabc;
+
 @end

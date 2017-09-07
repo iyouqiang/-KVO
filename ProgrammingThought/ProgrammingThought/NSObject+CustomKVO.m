@@ -8,7 +8,7 @@
 
 #import "NSObject+CustomKVO.h"
 #import <objc/message.h>
-
+#import "Person.h"
 @implementation NSObject (CustomKVO)
 
 NSString *const observerKey = @"observerKey";
@@ -19,7 +19,7 @@ SEL setterMethod = nil;
 -  (void)yochi_addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath;
 {
     // 下面的代码实现了三个功能
-    //1.创建指向父类新的类
+    //1.创建指向当前类的子类
     //2.新的类加入set方法
     //3.新的类替换为当前类
     //4.保存观察者
@@ -39,7 +39,19 @@ SEL setterMethod = nil;
     /** 子类注册 */
     objc_registerClassPair(mysubClass);
     
-    /** set方法名 */
+    u_int count = 0;
+    objc_property_t *properties = class_copyPropertyList([self class], &count);
+    for (int i = 0; i < count; i++) {
+        const char  *propertyName = property_getName(properties[i]);
+        const char  *attributes = property_getAttributes(properties[i]);
+        NSString *str = [NSString stringWithCString:propertyName encoding:NSUTF8StringEncoding];
+        NSString *attributesStr = [NSString stringWithCString:attributes encoding:NSUTF8StringEncoding];
+        NSLog(@"propertyName : %@", str);
+        NSLog(@"attributesStr : %@", attributesStr);
+    }
+    NSLog(@"类名 %@ 属性个数：%u", [self class],count);
+    
+    /** set方法名 setName:()xxx*/
     setterMethod = NSSelectorFromString([NSString stringWithFormat:@"set%@:", [keyPath capitalizedString]]);
     keyPath = keyPath;
     
@@ -49,8 +61,13 @@ SEL setterMethod = nil;
      */
     class_addMethod(mysubClass, setterMethod, (IMP)setKeyPath, "V@:@");
     
-    /** 将子类替换为父类 */
+    /** 将子类替换为当前类 */
     object_setClass(self, mysubClass);
+    
+    /** 子类属性值 */
+    u_int countsub = 0;
+    class_copyPropertyList([self class], &countsub);
+    NSLog(@"新类名 %@ 属性个数：%u", self,countsub);
     
     /** 分类中保存属性的方式 */
     objc_setAssociatedObject(self, (__bridge const void *)(observerKey), observer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -104,11 +121,11 @@ void setKeyPath(id self, SEL _cmd, NSString *keyPath)
 #pragma clang diagnostic ignored"-Wundeclared-selector"
     
     objc_msgSend(object, @selector(observeValueForKeyPath:ofObject:),keyPath, self);
-    
+    //- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
 #pragma clang diagnostic pop
     
     /** 改回子类类型 */
-    object_setClass(self, class);
+   object_setClass(self, class);
 }
 
 @end

@@ -93,4 +93,15 @@
     _name = name;
 }
 
+- (void)testabc
+{
+    NSLog(@"我是谁：%s",__func__);
+}
+
+- (void)setAge:(NSString *)age
+{
+    _age = age;
+    NSLog(@"age:%@", _age);
+}
+
 @end

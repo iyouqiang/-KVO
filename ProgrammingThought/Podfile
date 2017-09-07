@@ -1,0 +1,7 @@
+use_frameworks!
+platform :ios, "9.0"
+
+target 'ProgrammingThought' do
+  pod 'ReactiveObjC', '~> 2.1.0'
+end
+

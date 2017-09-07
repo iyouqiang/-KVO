@@ -11,6 +11,8 @@
 #import "Masonry.h"
 #import "Person.h"
 #import "NSObject+CustomKVO.h"
+#import <ReactiveObjC/ReactiveObjC.h>
+
 @interface ViewController ()
 
 @property (nonatomic, strong) Person *p;
@@ -23,9 +25,16 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    Person *person = [[Person alloc] init];
-    _p = person;
+    /** 编程思想 */
+    [self programingThough];
     
+    /** 自定义KVO */
+    [self customKVO];
+}
+
+- (void)programingThough
+{
+    Person *person = [[Person alloc] init];
     /** 普通的调用方式 只能单个调用 */
     [person eat];
     [person sleep];
@@ -98,8 +107,23 @@
     /** 响应式编程KVO */
     [_p addObserver:self forKeyPath:@"name" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:nil];
     
-    /** 自定义KVO */
-    [self customKVO];
+    /* RACSignal: 信号类,当我们有数据产生,创建一个信号! **/
+    
+    /** 1.创建信号(冷信号!) */
+    RACSignal * signal = [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        
+        /** 3.发送数据subscriber它来发送 */
+        [subscriber sendNext:@"呵呵哈哈嘿嘿"];
+        
+        return nil;
+    }];
+    
+    /** 2.订阅信号(热信号!!) */
+    [signal subscribeNext:^(id x) {
+        
+        /** x:信号发送的内容!! */
+        NSLog(@"%@",x);
+    }];
 }
 
 /** KVO 响应方法 */
@@ -112,16 +136,21 @@
 {
     static int i = 0;
     i++;
-    _p.name = [NSString stringWithFormat:@"Yochi不高兴 %d", i];
+    //_p.name = [NSString stringWithFormat:@"Yochi不高兴 %d", i];
     _p.age  = [NSString stringWithFormat:@"%d岁的Yochi很帅",i];
     // _p->_name  = [NSString stringWithFormat:@"Yochi不高兴 %d", i];
     
+    //NSLog(@"_p.name : %@", _p.name);
 }
 
-/*****************************************************************/
+/**********************************************/
+
 /** 自定义KVO */
 - (void)customKVO
 {
+    Person *person = [[Person alloc] init];
+    _p = person;
+    
     [_p yochi_addObserver:self forKeyPath:@"age"];
 }
 
